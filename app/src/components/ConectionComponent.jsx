@@ -49,24 +49,24 @@ const Btn = styled('button')({
   }
 });
 
-export default function ConectionComponent({ srvUrl, setSrvUrl, room, setRoom, handleConnect, dotWs, username, setUsername }) {
+export default function ConectionComponent({ srvUrl, setSrvUrl, room, setRoom, handleConnect, username, setUsername, connectDisabled }) {
   return (
     <ConectionWrapper username={username}>
       <div>
         <label>Servidor Signaling</label>
-        <input value={srvUrl} onChange={e => setSrvUrl(e.target.value)} disabled={dotWs === 'green'} />
+        <input value={srvUrl} onChange={e => setSrvUrl(e.target.value)} disabled={connectDisabled} />
       </div>
       {username && (
         <div>
           <label>Seu Nome</label>
-          <input value={username} onChange={e => setUsername(e.target.value)} disabled={dotWs === 'green'} />
+          <input value={username} onChange={e => setUsername(e.target.value)} disabled={connectDisabled} />
         </div>
       )}
       <div>
         <label>Sala</label>
-        <input value={room} onChange={e => setRoom(e.target.value)} disabled={dotWs === 'green'} />
+        <input value={room} onChange={e => setRoom(e.target.value)} disabled={connectDisabled} />
       </div>
-      <Btn className="btn-primary" onClick={handleConnect} disabled={dotWs === 'green'}>Conectar</Btn>
+      <Btn className="btn-primary" onClick={handleConnect} disabled={connectDisabled}>Conectar</Btn>
     </ConectionWrapper>
   );
 }

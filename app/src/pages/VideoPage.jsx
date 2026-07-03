@@ -1,109 +1,64 @@
 import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Box, Typography, styled } from '@mui/material';
 import HeaderComponent from '../components/HeaderComponent';
 import StatusComponent from '../components/StatusComponent';
 import ConectionComponent from '../components/ConectionComponent';
 import ActionsComponent from '../components/ActionsComponent';
 import VideoGridComponent from '../components/VideoGridComponent';
 import LogComponent from '../components/LogComponent';
+import { Card, CardTitle } from '../layouts/RootLayout';
+import { ConnectionProvider, useConnection } from '../context/ConnectionContext';
+import { LogProvider, useLog } from '../context/LogContext';
+import { RTC_CONFIG_BASIC } from '../config/webrtcConfig';
 
-// ── Estilização Baseada no seu style.css ──
-const PageWrapper = styled(Box)(() => ({
-  '--bg': '#0b0f1a',
-  '--surface': '#111827',
-  '--border': '#1e2a3a',
-  '--accent': '#00e5ff',
-  '--accent2': '#7c3aed',
-  '--green': '#22c55e',
-  '--red': '#ef4444',
-  '--yellow': '#facc15',
-  '--text': '#e2e8f0',
-  '--muted': '#64748b',
-  '--font-mono': '"JetBrains Mono", "Fira Code", monospace',
-  '--font-body': '"DM Sans", sans-serif',
-  '--radius': '10px',
-
-  fontFamily: 'var(--font-body)',
-  color: 'var(--text)',
-  maxWidth: '960px',
-  margin: '0 auto',
-  padding: '2rem 1rem',
-  display: 'grid',
-  gap: '1.5rem',
-
-  '& *': { boxSizing: 'border-box' },
-  '& input': {
-    width: '100%',
-    background: 'rgba(255,255,255,.05)',
-    border: '1px solid var(--border)',
-    borderRadius: '8px',
-    padding: '.6rem .9rem',
-    color: 'var(--text)',
-    fontFamily: 'var(--font-mono)',
-    fontSize: '.85rem',
-    outline: 'none',
-    transition: 'border-color .2s',
-    '&:focus': { borderColor: 'var(--accent)' }
-  }
-}));
-
-const Card = styled(Box)({
-  backgroundColor: 'var(--surface)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius)',
-  padding: '1.5rem',
-});
-
-const CardTitle = styled(Typography)({
-  fontSize: '.7rem',
-  fontWeight: 600,
-  textTransform: 'uppercase',
-  letterSpacing: '.1em',
-  color: 'var(--muted)',
-  marginBottom: '1rem',
-});
-
+// Componente "de fora" só monta os Providers.
+// Assim cada Page tem sua própria instância de estado — não é global na app inteira.
 export default function VideoPage() {
-  // ── Estados do React ──
-  const [srvUrl, setSrvUrl] = useState('http://localhost:3000');
-  const [room, setRoom] = useState('sala-01');
+  return (
+    <ConnectionProvider>
+      <LogProvider>
+        <VideoPageContent />
+      </LogProvider>
+    </ConnectionProvider>
+  );
+}
 
-  const [dotWs, setDotWs] = useState('muted');
-  const [dotRoom, setDotRoom] = useState('muted');
-  const [dotPeer, setDotPeer] = useState('muted');
+// Todo o conteúdo/lógica que antes estava direto em VideoPage foi movido pra cá,
+// agora consumindo os Contexts em vez de useState local.
+function VideoPageContent() {
+  // ── Estado vindo dos Contexts (antes era useState local) ──
+  const {
+    srvUrl, 
+    setSrvUrl,
+    room, 
+    setRoom,
+    dotWs, 
+    setDotWs,
+    dotRoom, 
+    setDotRoom,
+    dotPeer, 
+    setDotPeer,
+    isConnected, 
+    setIsConnected,
+    socketRef,
+  } = useConnection();
 
-  const [connectDisabled, setConnectDisabled] = useState(false);
+  const { logs, addLog, clearLogs } = useLog();
+
+  // ── Estado que continua local (é específico do módulo de vídeo) ──
   const [cameraDisabled, setCameraDisabled] = useState(true);
   const [callDisabled, setCallDisabled] = useState(true);
   const [hangupDisabled, setHangupDisabled] = useState(true);
-
   const [showLocalPh, setShowLocalPh] = useState(true);
   const [showRemotePh, setShowRemotePh] = useState(true);
 
-  const [logs, setLogs] = useState([]);
-
   // ── Referências de Instância (WebRTC & Sinalização) ──
-  const socketRef = useRef(null);
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
   const currentRoomRef = useRef('');
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
-
-  // ── Configuração ICE ──
-  const iceConfig = {
-    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-  };
-
-  // ── Helpers ──
-  const uid = () => Math.random().toString(36).slice(2, 9);
-  const now = () => new Date().toLocaleTimeString('pt-BR', { hour12: false });
-
-  const addLog = (msg, type = '') => {
-    setLogs(prev => [...prev, { id: uid(), time: now(), msg, type }]);
-  };
 
   useEffect(() => {
     addLog('Pronto. Configure o servidor e clique em Conectar.', 'info');
@@ -135,7 +90,7 @@ export default function VideoPage() {
       setDotRoom('green');
       addLog(`Entrou na sala "${currentRoomRef.current}"`, 'success');
 
-      setConnectDisabled(true);
+      setIsConnected(true);
       setCameraDisabled(false);
     });
 
@@ -179,7 +134,7 @@ export default function VideoPage() {
       setDotRoom('red');
       addLog('Socket desconectado', 'error');
 
-      setConnectDisabled(false);
+      setIsConnected(false);
       setCameraDisabled(true);
       setCallDisabled(true);
     });
@@ -193,7 +148,7 @@ export default function VideoPage() {
   // ── PeerConnection ──
   const ensurePeerConnection = async () => {
     if (pcRef.current) return;
-    const pc = new RTCPeerConnection(iceConfig);
+    const pc = new RTCPeerConnection(RTC_CONFIG_BASIC);
     pcRef.current = pc;
     setDotPeer('yellow');
     addLog('PeerConnection criada', 'info');
@@ -272,21 +227,11 @@ export default function VideoPage() {
   };
 
   return (
-    <PageWrapper>
-      <HeaderComponent
-        icon="📹"
-        title="WebRTC · Chamada de Vídeo"
-        description="Node.js Socket.IO backend · React.js Socket.IO frontend"
-      />
-
-      {/* Seção Conexão */}
+    <>
       <Card>
         <CardTitle>Conexão</CardTitle>
 
-        <StatusComponent
-          dotWs={dotWs}
-          dotRoom={dotRoom}
-          dotPeer={dotPeer} />
+        <StatusComponent dotWs={dotWs} dotRoom={dotRoom} dotPeer={dotPeer} />
 
         <ConectionComponent
           srvUrl={srvUrl}
@@ -294,8 +239,8 @@ export default function VideoPage() {
           room={room}
           setRoom={setRoom}
           handleConnect={handleConnect}
-          dotWs={dotWs}
-          connectDisabled={connectDisabled} />
+          connectDisabled={isConnected}
+        />
 
         <ActionsComponent
           cameraDisabled={cameraDisabled}
@@ -303,21 +248,21 @@ export default function VideoPage() {
           hangupDisabled={hangupDisabled}
           handleStartCamera={handleStartCamera}
           handleCall={handleCall}
-          handleHangup={handleHangup} />
+          handleHangup={handleHangup}
+        />
       </Card>
 
-      {/* Seção Vídeos */}
       <VideoGridComponent
         localVideoRef={localVideoRef}
         remoteVideoRef={remoteVideoRef}
         showLocalPh={showLocalPh}
-        showRemotePh={showRemotePh} />
+        showRemotePh={showRemotePh}
+      />
 
-      {/* Log */}
       <Card>
         <CardTitle>Log</CardTitle>
-        <LogComponent logs={logs} onClear={() => setLogs([])} />
+        <LogComponent logs={logs} onClear={clearLogs} />
       </Card>
-    </PageWrapper>
+    </>
   );
 }

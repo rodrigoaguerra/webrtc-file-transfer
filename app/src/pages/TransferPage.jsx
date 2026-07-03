@@ -1,80 +1,47 @@
 import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Box, Typography, styled } from '@mui/material';
+import { Card, CardTitle } from '../layouts/RootLayout';
+import { ConnectionProvider, useConnection } from '../context/ConnectionContext';
+import { LogProvider, useLog } from '../context/LogContext';
 import HeaderComponent from '../components/HeaderComponent';
 import StatusComponent from '../components/StatusComponent';
 import ConectionComponent from '../components/ConectionComponent';
 import InputsSendFiles from '../components/InputsSendFiles';
 import TransferComponent from '../components/TransferComponent';
 import LogComponent from '../components/LogComponent';
-
-// ── Estilização Baseada no seu style.css ──
-const PageWrapper = styled(Box)(() => ({
-  '--bg': '#0b0f1a',
-  '--surface': '#111827',
-  '--border': '#1e2a3a',
-  '--accent': '#00e5ff',
-  '--accent2': '#7c3aed',
-  '--green': '#22c55e',
-  '--red': '#ef4444',
-  '--yellow': '#facc15',
-  '--text': '#e2e8f0',
-  '--muted': '#64748b',
-  '--font-mono': '"JetBrains Mono", "Fira Code", monospace',
-  '--font-body': '"DM Sans", sans-serif',
-  '--radius': '10px',
-
-  fontFamily: 'var(--font-body)',
-  color: 'var(--text)',
-  maxWidth: '960px',
-  margin: '0 auto',
-  padding: '2rem 1rem',
-  display: 'grid',
-  gap: '1.5rem',
-
-  '& *': { boxSizing: 'border-box' },
-  '& input': {
-    width: '100%',
-    background: 'rgba(255,255,255,.05)',
-    border: '1px solid var(--border)',
-    borderRadius: '8px',
-    padding: '.6rem .9rem',
-    color: 'var(--text)',
-    fontFamily: 'var(--font-mono)',
-    fontSize: '.85rem',
-    outline: 'none',
-    transition: 'border-color .2s',
-    '&:focus': { borderColor: 'var(--accent)' }
-  }
-}));
-
-const Card = styled(Box)({
-  backgroundColor: 'var(--surface)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius)',
-  padding: '1.5rem',
-});
-
-const CardTitle = styled(Typography)({
-  fontSize: '.7rem',
-  fontWeight: 600,
-  textTransform: 'uppercase',
-  letterSpacing: '.1em',
-  color: 'var(--muted)',
-  marginBottom: '1rem',
-});
+import { RTC_CONFIG_FULL } from '../config/webrtcConfig'; // Config completa (STUN + TURN)
 
 export default function TransferPage() {
-  // ── Estados do React ──
-  const [srvUrl, setSrvUrl] = useState('http://localhost:3000');
-  const [room, setRoom] = useState('sala-01');
-  const [isConnected, setIsConnected] = useState(false);
-  
-  const [dotWs, setDotWs] = useState('muted');
-  const [dotRoom, setDotRoom] = useState('muted');
-  const [dotPeer, setDotPeer] = useState('muted');
+  return (
+    <ConnectionProvider>
+      <LogProvider>
+        <TransferPageContent />
+      </LogProvider>
+    </ConnectionProvider>
+  );
+}
 
-  const [logs, setLogs] = useState([]);
+function TransferPageContent() {
+  // ── Estado vindo dos Contexts (antes era useState local) ──
+  const {
+    srvUrl, 
+    setSrvUrl,
+    room, 
+    setRoom,
+    dotWs, 
+    setDotWs,
+    dotRoom, 
+    setDotRoom,
+    dotPeer, 
+    setDotPeer,
+    isConnected, 
+    setIsConnected,
+    socketRef,
+  } = useConnection();
+
+  const { logs, addLog, clearLogs } = useLog();
+
   const [sendQueue, setSendQueue] = useState(new Map());
   const [receiveQueue, setReceiveQueue] = useState(new Map());
 
@@ -89,7 +56,6 @@ export default function TransferPage() {
   const [acceptDisabled, setAcceptDisabled] = useState(false);
 
   // ── Referências de Instância (WebRTC & Fluxo) ──
-  const socketRef = useRef(null);
   const pcRef = useRef(null);
   const dataChannelRef = useRef(null);
   const sendFilesListRef = useRef([]); // Armazena objetos { file, id, relativePath }
@@ -133,11 +99,6 @@ export default function TransferPage() {
   // ── Helpers de Formatação ──
   const fmtMB = (bytes) => (bytes / 1024 / 1024).toFixed(2) + ' MB';
   const uid = () => Math.random().toString(36).slice(2, 9);
-  const now = () => new Date().toLocaleTimeString('pt-BR', { hour12: false });
-
-  const addLog = (msg, type = '') => {
-    setLogs(prev => [...prev, { id: uid(), time: now(), msg, type }]);
-  };
 
   useEffect(() => {
     // eslint-disable-next-line functional/no-expression-statements
@@ -185,14 +146,6 @@ export default function TransferPage() {
     }
   };
 
-  // ── Configuração WebRTC ──
-  const rtcConfig = {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }
-    ]
-  };
-
   // ── Conexão com o Servidor de Sinalização ──
   const handleConnect = async () => {
     const socket = io(srvUrl, { reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 1000 });
@@ -205,6 +158,8 @@ export default function TransferPage() {
       socket.emit('join-room', { room });
       setDotRoom('green');
       addLog(`Entrou na sala "${room}"`, 'success');
+
+      setIsConnected(true);
 
       if (dataChannelRef.current && dataChannelRef.current.readyState === 'open') return;
       await initPeer(room);
@@ -242,12 +197,15 @@ export default function TransferPage() {
     });
 
     socket.on('disconnect', () => {
-      setDotWs('red'); setDotRoom('red');
+      setDotWs('red'); 
+      setDotRoom('red');
+      addLog('Desconectado do servidor de sinalização', 'error');
+      setIsConnected(false);
     });
   };
 
   const initPeer = async (currentRoom) => {
-    const pc = new RTCPeerConnection(rtcConfig);
+    const pc = new RTCPeerConnection(RTC_CONFIG_FULL);
     pcRef.current = pc;
     addLog('PeerConnection criada', 'info');
 
@@ -810,14 +768,7 @@ export default function TransferPage() {
   };
 
   return (
-    <PageWrapper>
-      <HeaderComponent 
-        icon='📁'
-        title="WebRTC · Transferência P2P" 
-        description="Node.js Socket.IO backend · React.js Socket.IO frontend" 
-        />
-
-      {/* Seção Conexão */}
+    <>
       <Card>
         <CardTitle>Conexão</CardTitle>
         
@@ -832,7 +783,8 @@ export default function TransferPage() {
           room={room}
           setRoom={setRoom}
           handleConnect={handleConnect}
-          dotWs={dotWs} />
+          isConnected={isConnected} 
+          />
       </Card>
 
       {/* Seção Enviar */}
@@ -868,6 +820,6 @@ export default function TransferPage() {
         <CardTitle>Log</CardTitle>
         <LogComponent logs={logs} onClear={() => setLogs([])} />
       </Card>
-    </PageWrapper>
+    </>
   );
 }
