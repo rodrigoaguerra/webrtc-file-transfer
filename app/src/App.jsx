@@ -10,7 +10,7 @@ function App() {
     <ThemeProvider theme={theme}>
       {/* CssBaseline aplica um reset CSS consistente baseado no Material Design */}
       <CssBaseline />
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Loading...</div>}>
         <RouterProvider router={router} />
       </Suspense>
     </ThemeProvider>

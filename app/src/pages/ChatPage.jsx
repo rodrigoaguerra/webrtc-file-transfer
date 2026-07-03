@@ -1,91 +1,58 @@
 import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Box, Typography, styled } from '@mui/material';
+import { Card, CardTitle } from '../layouts/RootLayout';
+import { ConnectionProvider, useConnection } from '../context/ConnectionContext';
+import { LogProvider, useLog } from '../context/LogContext';
 import HeaderComponent from '../components/HeaderComponent';
 import StatusComponent from '../components/StatusComponent';
 import ConectionComponent from '../components/ConectionComponent';
 import LogComponent from '../components/LogComponent';
+import { RTC_CONFIG_FULL } from '../config/webrtcConfig';
 
-// ── Estilização Baseada no style.css fornecido ──
-const PageWrapper = styled(Box)(() => ({
-  '--bg': '#0b0f1a',
-  '--surface': '#111827',
-  '--border': '#1e2a3a',
-  '--accent': '#00e5ff',
-  '--accent2': '#7c3aed',
-  '--green': '#22c55e',
-  '--red': '#ef4444',
-  '--yellow': '#facc15',
-  '--text': '#e2e8f0',
-  '--muted': '#64748b',
-  '--font-mono': '"JetBrains Mono", "Fira Code", monospace',
-  '--font-body': '"DM Sans", sans-serif',
-  '--radius': '10px',
+export default function VideoPage() {
+  return (
+    <ConnectionProvider>
+      <LogProvider>
+        <ChatPageContent />
+      </LogProvider>
+    </ConnectionProvider>
+  );
+}
 
-  fontFamily: 'var(--font-body)',
-  color: 'var(--text)',
-  maxWidth: '960px',
-  margin: '0 auto',
-  padding: '2rem 1rem',
-  display: 'grid',
-  gap: '1.5rem',
+function ChatPageContent() {
+  // ── Estado vindo dos Contexts ──
+  const {
+    srvUrl, 
+    setSrvUrl,
+    username,
+    setUsername,
+    room, 
+    setRoom,
+    dotWs, 
+    setDotWs,
+    dotRoom, 
+    setDotRoom,
+    dotPeer, 
+    setDotPeer,
+    isConnected,
+    setIsConnected,
+    socketRef,
+  } = useConnection();
 
-  '& *': { boxSizing: 'border-box' },
-  '& input': {
-    width: '100%',
-    background: 'rgba(255,255,255,.05)',
-    border: '1px solid var(--border)',
-    borderRadius: '8px',
-    padding: '.6rem .9rem',
-    color: 'var(--text)',
-    fontFamily: 'var(--font-mono)',
-    fontSize: '.85rem',
-    outline: 'none',
-    transition: 'border-color .2s',
-    '&:focus': { borderColor: 'var(--accent)' }
-  }
-}));
-
-const Card = styled(Box)({
-  backgroundColor: 'var(--surface)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius)',
-  padding: '1.5rem',
-});
-
-const CardTitle = styled(Typography)({
-  fontSize: '.7rem',
-  fontWeight: 600,
-  textTransform: 'uppercase',
-  letterSpacing: '.1em',
-  color: 'var(--muted)',
-  marginBottom: '1rem',
-});
-
-export default function ChatPage() {
-  // ── Estados de Conexão e Configurações ──
-  const [srvUrl, setSrvUrl] = useState('http://localhost:3000');
-  const [username, setUsername] = useState('Usuário Anônimo');
-  const [room, setRoom] = useState('sala-01');
-  const [isConnected, setIsConnected] = useState(false);
+  const { logs, addLog, clearLogs } = useLog();
   
-  const [dotWs, setDotWs] = useState('muted');
-  const [dotRoom, setDotRoom] = useState('muted');
-  const [dotPeer, setDotPeer] = useState('muted');
-
   // ── Estados do Chat e Participantes ──
   const [participants, setParticipants] = useState(new Map()); // id -> name
   const [privateTarget, setPrivateTarget] = useState(null); // id ou null (grupo)
   const [messages, setMessages] = useState([]); // Array de objetos de mensagem
   const [messageText, setMessageText] = useState('');
-  const [logs, setLogs] = useState([]);
 
   // ── Estados de Gravação de Mídia ──
   const [isRecording, setIsRecording] = useState(false);
   const [recLabel, setRecLabel] = useState('Gravando...');
 
   // ── Referências de Instância (WebRTC, Sockets e Fluxos) ──
-  const socketRef = useRef(null);
   const peersRef = useRef({});         // { socketId: RTCPeerConnection }
   const dataChannelsRef = useRef({});  // { socketId: RTCDataChannel }
   const peerNamesRef = useRef({});     // { socketId: username }
@@ -101,18 +68,8 @@ export default function ChatPage() {
   // ── Constantes e Configurações Globais do app.js ──
   const CHUNK_SIZE = 64 * 1024; // 64KB
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
-  const rtcConfig = {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }
-    ]
-  };
 
   const now = () => new Date().toLocaleTimeString('pt-BR', { hour12: false });
-
-  const addLog = (msg, type = '') => {
-    setLogs(prev => [...prev, { id: Math.random().toString(36).substring(7), time: now(), msg, type }]);
-  };
 
   const updatePeerStatusDot = () => {
     const activePeers = Object.keys(dataChannelsRef.current).filter(
@@ -217,7 +174,7 @@ export default function ChatPage() {
   const initPeer = async (userId, isInitiator) => {
     if (peersRef.current[userId]) closePeerConnection(userId);
 
-    const pc = new RTCPeerConnection(rtcConfig);
+    const pc = new RTCPeerConnection(RTC_CONFIG_FULL);
     peersRef.current[userId] = pc;
 
     if (isInitiator) {
@@ -435,6 +392,7 @@ export default function ChatPage() {
     recorder.start(100);
   };
 
+
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
@@ -460,14 +418,7 @@ export default function ChatPage() {
   };
 
   return (
-    <PageWrapper>
-      <HeaderComponent 
-        icon="💬"
-        title="WebRTC · Chat Peer-to-Peer" 
-        description="Node.js Socket.IO backend · WebRTC DataChannel frontend"
-        />
-
-      {/* Seção Conexão */}
+    <>
       <Card>
         <CardTitle>Conexão</CardTitle>
         
@@ -484,7 +435,8 @@ export default function ChatPage() {
           room={room}
           setRoom={setRoom}
           handleConnect={handleConnect}
-          dotWs={dotWs} />
+          connectDisabled={isConnected} />
+
       </Card>
 
       {/* Seção Central de Mensagens e Participantes */}
@@ -571,6 +523,6 @@ export default function ChatPage() {
         <CardTitle>Log</CardTitle>
         <LogComponent logs={logs} onClear={() => setLogs([])} />
       </Card>
-    </PageWrapper>
+    </>
   );
 }
