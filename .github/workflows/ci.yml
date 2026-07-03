@@ -53,4 +53,4 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           source: "app/dist/*"
           target: "public_html/webrtc"
-          strip_components: 0
+          strip_components: 2
