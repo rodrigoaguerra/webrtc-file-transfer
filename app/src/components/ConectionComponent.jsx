@@ -49,14 +49,14 @@ const Btn = styled('button')({
   }
 });
 
-export default function ConectionComponent({ srvUrl, setSrvUrl, room, setRoom, handleConnect, username, setUsername, connectDisabled }) {
+export default function ConectionComponent({ srvUrl, setSrvUrl, room, setRoom, handleConnect, username = null, setUsername, connectDisabled }) {
   return (
-    <ConectionWrapper username={username}>
+    <ConectionWrapper username={username !== null}>
       <div>
         <label>Servidor Signaling</label>
         <input value={srvUrl} onChange={e => setSrvUrl(e.target.value)} disabled={connectDisabled} />
       </div>
-      {username && (
+      {username !== null && (
         <div>
           <label>Seu Nome</label>
           <input value={username} onChange={e => setUsername(e.target.value)} disabled={connectDisabled} />
