@@ -7,6 +7,8 @@ import { LogProvider, useLog } from '../context/LogContext';
 import HeaderComponent from '../components/HeaderComponent';
 import StatusComponent from '../components/StatusComponent';
 import ConectionComponent from '../components/ConectionComponent';
+import ContainerChat from '../components/ContainerChat';
+import InputsChat from '../components/InputsChat';
 import LogComponent from '../components/LogComponent';
 import { RTC_CONFIG_FULL } from '../config/webrtcConfig';
 
@@ -68,8 +70,6 @@ function ChatPageContent() {
   // ── Constantes e Configurações Globais do app.js ──
   const CHUNK_SIZE = 64 * 1024; // 64KB
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
-
-  const now = () => new Date().toLocaleTimeString('pt-BR', { hour12: false });
 
   const updatePeerStatusDot = () => {
     const activePeers = Object.keys(dataChannelsRef.current).filter(
@@ -392,28 +392,9 @@ function ChatPageContent() {
     recorder.start(100);
   };
 
-
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
-    }
-  };
-
-  // Renderizador condicional do conteúdo das mensagens (Texto ou Anexos/Mídias)
-  const renderMessageContent = (msg) => {
-    if (msg.type === 'text' || msg.type === 'private') {
-      return <p style={{ margin: 0 }}>{msg.data}</p>;
-    }
-
-    const url = URL.createObjectURL(msg.blob);
-    if (msg.mimeType.startsWith('image/')) {
-      return <img src={url} alt={msg.name} style={{ maxWidth: '220px', maxHeight: '200px', borderRadius: '8px', display: 'block', marginTop: '6px', cursor: 'pointer' }} onClick={() => window.open(url)} />;
-    } else if (msg.mimeType.startsWith('video/')) {
-      return <video src={url} controls style={{ maxWidth: '260px', borderRadius: '8px', display: 'block', marginTop: '6px' }} />;
-    } else if (msg.mimeType.startsWith('audio/')) {
-      return <audio src={url} controls style={{ maxWidth: '260px', borderRadius: '8px', display: 'block', marginTop: '6px' }} />;
-    } else {
-      return <a href={url} download={msg.name} style={{ color: '#7eb8f7', display: 'block', marginTop: '4px' }}>📥 {msg.name}</a>;
     }
   };
 
@@ -442,80 +423,31 @@ function ChatPageContent() {
       {/* Seção Central de Mensagens e Participantes */}
       <Card>
         <CardTitle>Mensagens</CardTitle>
-        <Box sx={{ display: 'flex', gap: '10px', alignItems: 'stretch', flexDirection: { xs: 'column', sm: 'row' } }}>
-          
-          {/* Lista de Participantes Laterais */}
-          <Box sx={{ width: { xs: '100%', sm: '140px' }, flexShrink: 0, background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '6px', padding: '8px 6px', display: 'flex', flexDirection: 'column', gap: '3px', overflowY: 'auto', maxHeight: '300px' }}>
-            <div style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--muted)', padding: '2px 6px 6px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>Participantes</div>
-            
-            <Box onClick={() => setPrivateTarget(null)} className={`user-item ${!privateTarget ? 'active' : ''}`} sx={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--text)', transition: 'background 0.15s', '&.active': { background: 'rgba(0, 229, 255, 0.12)', color: 'var(--accent)', fontWeight: 600 } }}>
-              <span>👥</span><span>Todos</span>
-            </Box>
-
-            <Box className="user-item user-self" sx={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '7px', fontSize: '0.8rem', color: 'var(--text)', opacity: 0.5 }}>
-              <span>🟢</span><span>{username} (Você)</span>
-            </Box>
-
-            {Array.from(participants.entries()).map(([id, name]) => (
-              <Box key={id} onClick={() => setPrivateTarget(id)} className={`user-item ${privateTarget === id ? 'active' : ''}`} sx={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 8px', borderRadius: '7px', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--text)', '&.active': { background: 'rgba(0, 229, 255, 0.12)', color: 'var(--accent)', fontWeight: 600 } }}>
-                <span>👤</span><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-              </Box>
-            ))}
-          </Box>
-
-          {/* Container das Mensagens */}
-          <Box sx={{ height: '300px', width: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '0.5rem', background: 'rgba(0, 0, 0, 0.2)', borderRadius: '6px', border: '1px solid var(--border)' }}>
-            {messages.map(msg => (
-              <Box key={msg.id} sx={{ display: 'flex', width: '100%', justifyContent: msg.sender === 'me' ? 'flex-end' : 'flex-start' }}>
-                <Box sx={{ maxWidth: '75%', padding: '0.6rem 0.9rem', borderRadius: '12px', fontSize: '0.9rem', lineHeight: 1.4, position: 'relative', wordBreak: 'break-word', background: msg.sender === 'me' ? 'linear-gradient(135deg, var(--accent2), rgba(124, 58, 237, 0.6))' : 'var(--border)', color: msg.sender === 'me' ? '#fff' : 'var(--text)', borderBottomRightRadius: msg.sender === 'me' ? '2px' : '12px', borderBottomLeftRadius: msg.sender === 'peer' ? '2px' : '12px' }}>
-                  {msg.type === 'private' && <span style={{ display: 'inline-block', fontSize: '10px', fontWeight: 700, background: 'rgba(124,58,237,0.3)', color: '#c4b5fd', border: '1px solid rgba(124,58,237,0.5)', borderRadius: '5px', padding: '1px 5px', marginBottom: '4px', letterSpacing: '.05em' }}>🔒 PRIVADO</span>}
-                  <span style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, color: msg.sender === 'me' ? 'var(--yellow)' : 'var(--accent)', textAlign: msg.sender === 'me' ? 'right' : 'left', marginBottom: '0.15rem' }}>{msg.senderName}</span>
-                  {renderMessageContent(msg)}
-                  <span style={{ display: 'block', fontSize: '0.65rem', color: 'rgba(255, 255, 255, 0.4)', marginTop: '0.2rem', fontFamily: 'var(--font-mono)', textAlign: 'right' }}>{now()}</span>
-                </Box>
-              </Box>
-            ))}
-          </Box>
-        </Box>
+        <ContainerChat 
+          messages={messages} 
+          participants={participants} 
+          username={username} 
+          privateTarget={privateTarget} 
+          setPrivateTarget={setPrivateTarget}
+          />
       </Card>
 
       {/* Formulário Inferior de Envio */}
       <Card>
         <CardTitle>Enviar mensagem</CardTitle>
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '.75rem', alignItems: 'end' }}>
-          <div style={{ width: '100%' }}>
-            <label style={{ display: 'block', fontSize: '.78rem', color: 'var(--muted)', marginBottom: '.35rem' }}>Mensagem</label>
-            
-            {privateTarget && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--accent2)', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>
-                <span>🔒 Para: <strong>{participants.get(privateTarget) || privateTarget}</strong></span>
-                <button onClick={() => setPrivateTarget(null)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '13px' }}>✕</button>
-              </Box>
-            )}
-
-            <Box sx={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
-              <input value={messageText} onChange={e => setMessageText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} className={privateTarget ? 'private' : ''} style={{ borderColor: privateTarget ? 'var(--accent2)' : '', boxShadow: privateTarget ? '0 0 0 2px rgba(124,58,237,0.25)' : '' }} placeholder={privateTarget ? `Mensagem privada para ${participants.get(privateTarget)}...` : "Digite sua mensagem..."} disabled={!isConnected} />
-              
-              <button onClick={() => fileInputRef.current.click()} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', background: 'rgba(255,255,255,.05)', border: '1px solid var(--border)', color: 'var(--text)', borderRadius: '8px' }} disabled={!isConnected} title="Anexar arquivos">
-                📎
-                <input type="file" ref={fileInputRef} onChange={e => handleSendFile(e.target.files[0])} style={{ display: 'none' }} />
-              </button>
-
-              <button onClick={() => startRecording('audio')} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', background: 'rgba(255,255,255,.05)', border: '1px solid var(--border)', color: isRecording ? '#ef4444' : 'var(--text)', borderRadius: '8px' }} disabled={!isConnected} title="Gravar Áudio">🎤</button>
-              <button onClick={() => startRecording('video')} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', background: 'rgba(255,255,255,.05)', border: '1px solid var(--border)', color: isRecording ? '#ef4444' : 'var(--text)', borderRadius: '8px' }} disabled={!isConnected} title="Gravar Vídeo">🎥</button>
-              
-              <button className="btn btn-primary" onClick={handleSendMessage} disabled={!isConnected} style={{ padding: '.65rem 1.4rem', border: 'none', borderRadius: '8px', fontWeight: 600, background: 'linear-gradient(135deg, var(--accent2), var(--accent))', color: '#fff' }}>Enviar</button>
-            </Box>
-
-            {isRecording && (
-              <Box sx={{ display: 'flex', marginTop: '6px', fontSize: '12px', color: '#ef4444', fontFamily: 'var(--font-mono)', alignItems: 'center', gap: '6px' }}>
-                <span style={{ animation: 'blink 1s infinite' }}>⏺</span>
-                <span>{recLabel}</span>
-              </Box>
-            )}
-          </div>
-        </Box>
-        {!isConnected && <p style={{ margin: '10px 0 0', color: '#6b7280', fontSize: '0.95rem' }}>Conecte-se a uma sala para começar a conversar.</p>}
+        <InputsChat
+          participants={participants}
+          privateTarget={privateTarget}
+          setPrivateTarget={setPrivateTarget}
+          messageText={messageText}
+          setMessageText={setMessageText}
+          handleSendMessage={handleSendMessage}
+          handleSendFile={handleSendFile}
+          fileInputRef={fileInputRef}
+          isConnected={isConnected}
+          isRecording={isRecording}
+          startRecording={startRecording}
+          recLabel={recLabel} />
       </Card>
 
       {/* Log */}
