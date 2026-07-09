@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Box, styled } from '@mui/material';
 
-const ConectionWrapper = styled(Box)(({ username }) => ({  
+const ConectionWrapper = styled(Box, { shouldForwardProp: (prop) => prop !== 'hasUserName' })(({ hasUserName }) => ({  
   display: 'grid',
-  gridTemplateColumns: username ? '1fr 1fr 1fr auto' : '1fr 1fr auto',
+  gridTemplateColumns: hasUserName ? '1fr 1fr 1fr auto' : '1fr 1fr auto',
   gap: '.75rem',
   alignItems: 'end',
   '& label':  { 
@@ -24,7 +24,7 @@ const ConectionWrapper = styled(Box)(({ username }) => ({
     outline: 'none',
     transition: 'border-color .2s'
   },
-  '& input::focus': { borderColor: 'var(--accent)' }
+  '& input:focus': { borderColor: 'var(--accent)' }
 }));
 
 const Btn = styled('button')({
@@ -51,7 +51,7 @@ const Btn = styled('button')({
 
 export default function ConectionComponent({ srvUrl, setSrvUrl, room, setRoom, handleConnect, username = null, setUsername, connectDisabled }) {
   return (
-    <ConectionWrapper username={username !== null}>
+    <ConectionWrapper hasUserName={username !== null}>
       <div>
         <label>Servidor Signaling</label>
         <input value={srvUrl} onChange={e => setSrvUrl(e.target.value)} disabled={connectDisabled} />

@@ -212,7 +212,7 @@ export default function Home() {
           // stack
         </Typography>
         <Box className="footer-stack" sx={{ display: 'flex', gap: '10px' }}>
-          {['WebRTC', 'Socket.io', 'Node.js'].map((tech) => (
+          {['Node.js', 'Express.js', 'Socket.io', 'React.js', 'Material UI', 'WebRTC'].map((tech) => (
             <Box key={tech} component="span" sx={{ fontFamily: '"Share Tech Mono", monospace', fontSize: 10, color: 'var(--muted)', border: '1px solid var(--border)', padding: '3px 10px', borderRadius: '2px', letterSpacing: '0.06em' }}>
               {tech}
             </Box>
