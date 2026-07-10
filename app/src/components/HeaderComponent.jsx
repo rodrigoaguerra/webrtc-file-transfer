@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Box, Typography, styled, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-const HeaderWrapper = styled(Box)(() => ({  
+const HeaderWrapper = styled(Box)(({ theme }) => ({  
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between', // Empurra a esquerda e direita pros cantos
@@ -19,19 +19,19 @@ const HeaderWrapper = styled(Box)(() => ({
     height: '44px',
     background: 'linear-gradient(135deg, var(--accent2), var(--accent))', //
     borderRadius: '12px',
-    display: 'grid', //
-    placeItems: 'center', //[cite: 2]
-    fontSize: '1.4rem' //[cite: 2]
+    display: 'grid',
+    placeItems: 'center',
+    fontSize: '1.4rem'
   },
   '& h1': {
-    fontSize: '1.3rem', //[cite: 2]
-    fontWeight: 600, //[cite: 2]
-    letterSpacing: '-.02em', //[cite: 2]
+    fontSize: '1.3rem',
+    fontWeight: 600,
+    letterSpacing: '-.02em',
     color: 'var(--text)' // Garante que a cor do texto siga seu tema
   },
   '& p': {
-    fontSize: '.8rem', //[cite: 2]
-    color: 'var(--muted)', //[cite: 2]
+    fontSize: '.8rem',
+    color: 'var(--muted)',
     margin: 0 // Remove margens padrões do parágrafo para melhor alinhamento
   },
   // Estilização do botão de voltar combinando com seus inputs/cards
@@ -46,6 +46,14 @@ const HeaderWrapper = styled(Box)(() => ({
       backgroundColor: 'rgba(255, 255, 255, 0.1)',
       borderColor: 'var(--accent)',
       color: 'var(--accent)',
+    }
+  },
+  [theme.breakpoints.down('md')]: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '.75rem',
+    '& .back-button': {
+      alignSelf: 'flex-end'
     }
   }
 }));
