@@ -1,15 +1,18 @@
 import { Link } from 'react-router-dom';
 import { Box, styled } from '@mui/material';
 
-const StatusWrapper = styled(Box)(() => ({
+const StatusWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
   gap: '.75rem',
   flexWrap: 'wrap',
   float: 'right',
   marginTop: '-2.5rem',
+  [theme.breakpoints.down('md')]: {
+    gap: '.65rem',
+  }
 }));
 
-const Badge = styled('span')(({ state }) => {
+const Badge = styled('span')(({ theme, state }) => {
   const colors = { red: 'var(--red)', yellow: 'var(--yellow)', green: 'var(--green)', muted: 'var(--muted)' };
   const color = colors[state] || 'var(--border)';
   return {
@@ -22,6 +25,10 @@ const Badge = styled('span')(({ state }) => {
     border: `1px solid ${color}`,
     borderRadius: '999px',
     padding: '.3rem .8rem',
+    [theme.breakpoints.down('md')]: {
+      fontSize: '.7rem',
+      padding: '.2rem .6rem',
+    }
   }
 });  
 
@@ -36,7 +43,8 @@ const Dot = styled('span')(({ state }) => {
     backgroundColor: color,
     boxShadow: state !== 'muted' && state !== 'red' ? `0 0 6px ${color}` : 'none',
     transition: 'background .3s',
-    display: 'inline-block'
+    display: 'inline-block',
+    animation:  state === 'muted' ? 'none' : 'pulse 2s infinite',
   };
 });
 

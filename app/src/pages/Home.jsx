@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Box, Typography, styled } from '@mui/material';
 
 // Estilizando o Card para se comportar exatamente como o seu CSS original
-const StyledCard = styled(Link)(() => ({
+const StyledCard = styled(Link)(({ theme }) => ({
   position: 'relative',
   display: 'block',
   textDecoration: 'none',
@@ -56,6 +56,26 @@ const StyledCard = styled(Link)(() => ({
       transform: 'translateY(-50%) translateX(0)',
     }
   },
+
+  [theme.breakpoints.down('md')]: {
+    '& div': {
+      display: 'flex', // 👈 muda de block pra flex
+      flexDirection: 'column', // 👈 empilha os elementos
+      alignItems: 'center', // 👈 centraliza os elementos
+      textAlign: 'center', // 👈 centraliza o texto
+    }
+  },
+}));
+
+const FooterStack = styled(Box)(() => ({
+  marginTop: '72px',
+  paddingTop: '24px',
+  borderTop: '1px solid var(--border)',
+  display: 'flex', alignItems: 'center',
+  justifyContent: 'space-between',
+  flexWrap: 'wrap',
+  gap: '12px',
+  animation: 'fadeUp 0.6s 0.6s ease both' 
 }));
 
 export default function Home() {
@@ -207,18 +227,47 @@ export default function Home() {
       </Box>
 
       {/* ── Footer ── */}
-      <Box component="footer" sx={{ marginTop: '72px', paddingTop: '24px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', animation: 'fadeUp 0.6s 0.6s ease both' }}>
-        <Typography component="span" sx={{ fontFamily: '"Share Tech Mono", monospace', fontSize: 11, color: 'var(--muted)', letterSpacing: '0.08em' }}>
+      <FooterStack component="footer">
+        <Typography
+          component="span"
+          sx={{
+            fontFamily: '"Share Tech Mono", monospace',
+            fontSize: 11,
+            color: 'var(--muted)',
+            letterSpacing: '0.08em'
+          }}
+        >
           // stack
         </Typography>
-        <Box className="footer-stack" sx={{ display: 'flex', gap: '10px' }}>
+
+        <Box
+          className="footer-stack"
+          sx={{
+            display: 'flex',
+            gap: '10px',
+            flexWrap: 'wrap' // 👈 aqui resolve
+          }}
+        >
           {['Node.js', 'Express.js', 'Socket.io', 'React.js', 'Material UI', 'WebRTC'].map((tech) => (
-            <Box key={tech} component="span" sx={{ fontFamily: '"Share Tech Mono", monospace', fontSize: 10, color: 'var(--muted)', border: '1px solid var(--border)', padding: '3px 10px', borderRadius: '2px', letterSpacing: '0.06em' }}>
+            <Box
+              key={tech}
+              component="span"
+              sx={{
+                fontFamily: '"Share Tech Mono", monospace',
+                fontSize: 10,
+                color: 'var(--muted)',
+                border: '1px solid var(--border)',
+                padding: '3px 10px',
+                borderRadius: '2px',
+                letterSpacing: '0.06em',
+                whiteSpace: 'nowrap' // 👈 evita quebrar o texto interno
+              }}
+            >
               {tech}
             </Box>
           ))}
         </Box>
-      </Box>
+      </FooterStack>
 
     </Box>
   );

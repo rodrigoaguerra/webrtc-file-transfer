@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Box, styled } from '@mui/material';
 
-const ConectionWrapper = styled(Box, { shouldForwardProp: (prop) => prop !== 'hasUserName' })(({ hasUserName }) => ({  
+const ConectionWrapper = styled(Box, { shouldForwardProp: (prop) => prop !== 'hasUserName' })(({ theme, hasUserName }) => ({  
   display: 'grid',
   gridTemplateColumns: hasUserName ? '1fr 1fr 1fr auto' : '1fr 1fr auto',
   gap: '.75rem',
@@ -24,10 +24,27 @@ const ConectionWrapper = styled(Box, { shouldForwardProp: (prop) => prop !== 'ha
     outline: 'none',
     transition: 'border-color .2s'
   },
-  '& input:focus': { borderColor: 'var(--accent)' }
+  '& input:focus': { borderColor: 'var(--accent)' },
+  
+  [theme.breakpoints.down('md')]: {
+    '& div': {
+      gridColumn: '1 / -1'
+    }
+  },
+
 }));
 
-const Btn = styled('button')({
+const BtnContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: '.5rem',
+  [theme.breakpoints.down('md')]: {
+    gridColumn: '1 / -1'
+  },
+}));
+
+const Btn = styled('button')(({ theme }) => ({
   padding: '.65rem 1.4rem',
   border: 'none',
   cursor: 'pointer',
@@ -46,8 +63,8 @@ const Btn = styled('button')({
     background: 'rgba(255,255,255,.05)',
     border: '1px solid var(--border)',
     color: 'var(--text)',
-  }
-});
+  },
+}));
 
 export default function ConectionComponent({ srvUrl, setSrvUrl, room, setRoom, handleConnect, username = null, setUsername, connectDisabled }) {
   return (
@@ -66,7 +83,9 @@ export default function ConectionComponent({ srvUrl, setSrvUrl, room, setRoom, h
         <label>Sala</label>
         <input value={room} onChange={e => setRoom(e.target.value)} disabled={connectDisabled} />
       </div>
-      <Btn className="btn-primary" onClick={handleConnect} disabled={connectDisabled}>Conectar</Btn>
+      <BtnContainer>
+        <Btn className="btn-primary" onClick={handleConnect} disabled={connectDisabled}>Conectar</Btn>
+      </BtnContainer>
     </ConectionWrapper>
   );
 }
