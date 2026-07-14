@@ -40,7 +40,7 @@ function TransferPageContent() {
     socketRef,
   } = useConnection();
 
-  const { logs, addLog, clearLogs } = useLog();
+  const { logs, addLog, setLogs, clearLogs } = useLog();
 
   const [sendQueue, setSendQueue] = useState(new Map());
   const [receiveQueue, setReceiveQueue] = useState(new Map());

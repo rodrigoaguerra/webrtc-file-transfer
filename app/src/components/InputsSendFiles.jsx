@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Box, styled } from '@mui/material';
 
-const InputsSendFilesWrapper = styled(Box)(() => ({
+const InputsSendFilesWrapper = styled(Box)(({ theme }) => ({
   '& .controls': {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr auto',
@@ -25,8 +25,19 @@ const InputsSendFilesWrapper = styled(Box)(() => ({
       outline: 'none',
       transition: 'border-color .2s'
     },
-    
-    '& > input::focus': { borderColor: 'var(--accent)' }
+    '& > input:focus': { borderColor: 'var(--accent)' }
+  },
+  '& .hint': {
+    fontSize: '.75rem',
+    color: 'var(--muted)',
+    marginTop: '.5rem'
+  },
+  [theme.breakpoints.down('sm')]: {
+    '& .controls': {
+      gridTemplateColumns: '1fr',
+      gap: '.5rem',
+      '& > div': { width: '100%' }
+    }
   },
 }));
 
