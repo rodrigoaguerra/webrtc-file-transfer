@@ -1,49 +1,93 @@
-import { useEffect } from 'react';
+import { useRef,useEffect } from 'react';
 import { Box, styled } from '@mui/material';
 
-const LogWrapper = styled(Box)(() => ({
+const LogWrapper = styled(Box)(({ theme }) => ({
   background: '#070b14',
   border: '1px solid var(--border)',
   borderRadius: '8px',
-  padding: '1rem',
+  padding: '.75rem',
   height: '180px',
   overflowY: 'auto',
   fontFamily: 'var(--font-mono)',
-  fontSize: '.75rem',
-  lineHeight: 1.7,
+  fontSize: '.8rem',
+  lineHeight: 1.6,
+
   scrollbarWidth: 'thin',
   scrollbarColor: 'var(--border) transparent',
-  
-  // Customização para navegadores baseados em Webkit (Chrome, Safari, Edge)
+
   '&::-webkit-scrollbar': {
-    width: '6px',
+    width: '5px',
   },
   '&::-webkit-scrollbar-thumb': {
     backgroundColor: 'var(--border)',
     borderRadius: '4px',
   },
-  '& .log-line': { 
+
+  '& .log-line': {
     display: 'flex',
-    gap: '.6rem',
+    alignItems: 'flex-start',
+    gap: '.4rem',
+    marginBottom: '.25rem',
   },
-  '& .log-time': { color: 'var(--muted)', flexShrink: 0 },
-  '& .log-icon': { flexShrink: 0 },
-  '& .log-msg': { color: 'var(--text)' },
+
+  '& .log-time': {
+    color: 'var(--muted)',
+    fontSize: '.65rem',
+    minWidth: '55px',
+    flexShrink: 0,
+  },
+
+  '& .log-icon': {
+    flexShrink: 0,
+  },
+
+  '& .log-msg': {
+    color: 'var(--text)',
+    wordBreak: 'break-word',
+  },
+
   '& .log-msg.success': { color: 'var(--green)' },
   '& .log-msg.error': { color: 'var(--red)' },
   '& .log-msg.warn': { color: 'var(--yellow)' },
   '& .log-msg.info': { color: 'var(--accent)' },
   '& .log-msg.send': { color: 'var(--yellow)' },
-  '& .log-msg.receive': { color: 'var(--green)' }
+  '& .log-msg.receive': { color: 'var(--green)' },
+
+  // 📱 MOBILE
+  [theme.breakpoints.down('sm')]: {
+    height: '140px',
+    fontSize: '.75rem',
+    padding: '.6rem',
+
+    '& .log-line': {
+      flexDirection: 'column',
+      gap: '2px',
+    },
+
+    '& .log-time': {
+      fontSize: '.6rem',
+      minWidth: 'auto',
+    },
+
+    '& .log-icon': {
+      display: 'none', // economiza espaço
+    },
+  },
 }));
 
 export default function LogComponent({ logs, onClear }) {
   const icons = { success: '✅', error: '❌', warn: '⚠️', info: 'ℹ️', send: '📦', receive: '📥' };
 
+  const logRef = useRef(null);
+
   useEffect(() => {
-    const clearLogs = () => {
-      onClear();
-    };
+    if (logRef.current) {
+      logRef.current.scrollTop = logRef.current.scrollHeight;
+    }
+  }, [logs]);
+
+  useEffect(() => {
+    const clearLogs = () => onClear();
     window.addEventListener('beforeunload', clearLogs);
     return () => {
       window.removeEventListener('beforeunload', clearLogs);
@@ -51,7 +95,7 @@ export default function LogComponent({ logs, onClear }) {
   }, [onClear]);
 
   return (
-    <LogWrapper>
+    <LogWrapper ref={logRef}>
       {logs.map(log => (
         <div className="log-line" key={log.id}>
           <span className="log-time">{log.time}</span>
