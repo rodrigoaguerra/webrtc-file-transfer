@@ -3,14 +3,14 @@ import { Box, styled } from '@mui/material';
 import ChatListUsers from './ChatListUsers';
 import ChatMessages from './ChatMessages';
 
-const ContainerWrapper = styled(Box)(() => ({
+const ContainerWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
   gap: '10px',
   alignItems: 'stretch',
-  flexDirection: { 
-    xs: 'column',
-    sm: 'row'
-  } 
+  flexDirection: 'column',
+  [theme.breakpoints.up('sm')]: {
+    flexDirection: 'row',
+  },
 }));
 
 export default function ContainerChat({ messages, participants, username, privateTarget, setPrivateTarget }) {
