@@ -224,6 +224,45 @@ export default function Home() {
           </Box>
         </StyledCard>
 
+        {/* Card: Breakout 2d */}
+        <StyledCard to="/game">
+          <Box sx={{ position: 'relative', display: 'flex', alignItems: 'flex-start', gap: '24px' }}>
+            <Box className="icon-box" sx={{ flexShrink: 0, width: 52, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.15)', borderRadius: '3px', transition: 'background 0.3s, border-color 0.3s' }}>
+              <svg viewBox="0 0 24 24" style={{ width: 24, height: 24, stroke: 'var(--accent)', fill: 'none', strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+                {/* Corpo do controle (expandido) */}
+                <path d="M3 14c0-3 2.5-6 9-6s9 3 9 6-1.5 6-4.5 6c-2 0-2.5-1.5-4.5-1.5S9.5 20 7.5 20C4.5 20 3 17 3 14z" />
+
+                {/* D-Pad */}
+                <path d="M7 14h3M8.5 12.5v3" />
+
+                {/* Botões */}
+                <circle cx="16.5" cy="13.5" r="1.2" />
+                <circle cx="19" cy="12" r="1.2" />
+              </svg>
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                <Typography component="span" sx={{ fontFamily: '"Share Tech Mono", monospace', fontSize: 10, color: 'var(--accent)', letterSpacing: '0.08em', opacity: 0.7 }}>
+                  routes/breakout
+                </Typography>
+                <Box component="span" sx={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--green)', background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.18)', padding: '2px 7px', borderRadius: '2px' }}>
+                  Game
+                </Box>
+              </Box>
+              <Typography variant="h2" sx={{ fontSize: '1.25rem', fontWeight: 600, color: '#fff', marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                Breakout 2D Multiplayer
+              </Typography>
+              <Typography sx={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.65, fontWeight: 300 }}>
+                Jogo de Breakout 2D em tempo real com controle remoto via WebRTC. Suporte a múltiplos participantes com sinalização gerenciada pelo Socket.io.
+              </Typography>
+            </Box>
+            <Box className="card-arrow" sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%) translateX(-6px)', opacity: 0, transition: 'opacity 0.3s, transform 0.3s', color: 'var(--accent)' }}>
+              <svg viewBox="0 0 24 24" style={{ width: 18, height: 18, stroke: 'currentColor', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }}><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </Box>
+          </Box>
+        </StyledCard>
+
+
       </Box>
 
       {/* ── Footer ── */}

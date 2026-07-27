@@ -6,6 +6,7 @@ const Home = lazy(() => import('../pages/Home'));
 const VideoPage = lazy(() => import('../pages/VideoPage'));
 const TransferPage = lazy(() => import('../pages/TransferPage'));
 const ChatPage = lazy(() => import('../pages/ChatPage'));
+const GamePage = lazy(() => import('../pages/GamePage'));
 
 export const router = createBrowserRouter([
   { 
@@ -43,6 +44,15 @@ export const router = createBrowserRouter([
           description: 'Node.js Socket.IO backend · React.js Socket.IO frontend' 
         } 
       },
+      {
+        path: 'game',
+        element: <GamePage />,
+        handle: {
+          icon: '🎮',
+          title: 'WebRTC · Jogo P2P',
+          description: 'Node.js Socket.IO backend · React.js Socket.IO frontend'
+        }
+      }
     ]
   }
 ]);
