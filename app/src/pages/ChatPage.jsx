@@ -12,7 +12,7 @@ import InputsChat from '../components/InputsChat';
 import LogComponent from '../components/LogComponent';
 import { RTC_CONFIG_FULL } from '../config/webrtcConfig';
 
-export default function VideoPage() {
+export default function ChatPage() {
   return (
     <ConnectionProvider>
       <LogProvider>
