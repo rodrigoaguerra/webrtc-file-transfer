@@ -24,8 +24,8 @@ jobs:
         run: npm ci
 
       - name: Verificar vulnerabilidades de produção no app
-       working-directory: ./app
-       run: npm audit --omit=dev
+        working-directory: ./app
+        run: npm audit --omit=dev
 
       - name: Build React
         working-directory: ./app
